@@ -1,11 +1,15 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-test("unconfigured providers clearly require setup and cannot be clicked", async ({ page }) => {
+test("unconfigured providers explain setup when clicked", async ({ page }) => {
+  await page.route("**/api/auth/providers", route => route.fulfill({json:[{provider:"google",enabled:false},{provider:"microsoft",enabled:false}]}));
   await page.goto("/login");
-  await expect(page.getByRole("button", { name: "Continue with Google" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Continue with Microsoft" })).toBeDisabled();
   await expect(page.getByText("Google and Microsoft sign-in need administrator setup.", { exact: false })).toBeVisible();
+  await page.getByRole("button", { name: "Continue with Google" }).click();
+  await expect(page.locator(".auth-form-card").getByRole("alert")).toContainText("Google sign-in is not configured");
+  await expect(page.locator(".auth-form-card").getByRole("alert")).toBeFocused();
+  await page.getByRole("button", { name: "Continue with Microsoft" }).click();
+  await expect(page.locator(".auth-form-card").getByRole("alert")).toContainText("Microsoft sign-in is not configured");
 });
 
 for (const theme of ["light", "dark"]) {

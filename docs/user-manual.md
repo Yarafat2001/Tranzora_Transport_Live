@@ -197,3 +197,5 @@ English typography uses locally hosted Manrope headings and Plus Jakarta Sans in
 For Vercel frontend deployments with a Render API, administrators must configure the public URL and trusted origins on both services. Follow [vercel-render-auth.md](vercel-render-auth.md), redeploy, and clear stale cookies before retrying sign-in.
 
 Developer troubleshooting: open the repository folder and select backend/Tranzora.slnx as the C# solution. After switching from VS Code's generated solution, use Developer: Reload Window once to refresh stale missing-type diagnostics. Do not delete application helpers or bypass authentication checks to clear editor diagnostics.
+
+If Google sign-in needs setup, clicking it now explains the requirement. Choose Register here for email registration; required fields and terms must be completed before submission. Authentication errors appear above the form and receive focus. An administrator must activate Google credentials and its public callback in Render before Google sign-in can complete.

@@ -174,3 +174,17 @@ Render runtime correction (29 October 2026): both Docker runtime stages install 
 
 
 The endpoint-extraction regression also omitted dashboard and audit-log routes. Both routes are restored in EndpointExtensions with their existing tenant and permission checks; the existing API integration suite covers totals and audit behavior.
+
+## Google sign-in and registration actions
+
+The live provider status endpoint reported Google and Microsoft disabled on 29 October 2026. Changing a button does not activate a provider. Availability is checked before starting provider navigation; unavailable providers now show a focused, visible explanation instead of an inert control. Failed availability checks are distinguished from missing configuration. Registration/login navigation remounts the auth form so notices and submission state do not leak between pages. Registration failures are shown above the form and brought into view.
+
+To activate Google on the Render origin, configure the existing Google Web OAuth client with this exact authorized redirect URI:
+
+`https://tranzora-transport-live.onrender.com/api/auth/callback/google`
+
+The API requires these private Render settings: `Authentication__google__ClientId`, `Authentication__google__ClientSecret`, `Authentication__KeyEncryptionCertificatePath`, and `Authentication__KeyEncryptionCertificatePassword`. The certificate setting must identify a readable PFX file containing the encryption/decryption key; configure it through the deployment's secure file provisioning. Do not put the file or its password in Git. Use `App__PublicOrigin=https://tranzora-transport-live.onrender.com`, `AUTH_URL=https://tranzora-transport-live.onrender.com`, and `App__SecureCookies=true`. Public provider activation is intentionally refused without key-ring encryption configured.
+
+After setting the configuration and redeploying, `/api/auth/providers` must report `google` enabled. This confirms configuration presence, not a complete Google login. Verify a real provider round trip before accepting activation. The Google console's consent/testing settings must allow the intended account. No Google secret values were read or changed during the UI fix.
+
+The same live check still reported pending migration `20261028143924_InitialCreate` at `/api/health`. Complete the migration step and obtain HTTP 200 before accepting email registration; the login page alone does not prove readiness. The Register here link was verified to open the live registration form on phone and desktop without submitting public data.

@@ -69,7 +69,7 @@ jobs:
       - run: npm run test:driver
       - run: npx playwright install --with-deps chrome
       - run: npm run test:contrast
-      - run: npx playwright test tests/ui/delivery.spec.ts tests/ui/branding.spec.ts tests/ui/workspace.spec.ts tests/ui/record-controls.spec.ts tests/ui/language.spec.ts tests/ui/cinematic.spec.ts tests/ui/reset-password.spec.ts
+      - run: npx playwright test tests/ui/delivery.spec.ts tests/ui/branding.spec.ts tests/ui/workspace.spec.ts tests/ui/record-controls.spec.ts tests/ui/language.spec.ts tests/ui/cinematic.spec.ts tests/ui/reset-password.spec.ts tests/ui/auth-actions.spec.ts tests/ui/oauth.spec.ts
       - run: docker build -t tranzora-web:ci .
       - run: docker build -t tranzora-api:ci backend
       - run: docker build -t tranzora-postgres:ci deploy/postgres

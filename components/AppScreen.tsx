@@ -15,6 +15,9 @@ function AuthScreen({ screen }: { screen: Screen }) {
   const [socialProvider, setSocialProvider] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [providers, setProviders] = useState<Record<string, boolean>>({});
+  const [providersLoading, setProvidersLoading] = useState(true);
+  const [providersUnavailable, setProvidersUnavailable] = useState(false);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
   const [externalEnrollment, setExternalEnrollment] = useState<{ provider: string; name: string; email: string } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const isLogin = screen.title === "Login";
@@ -25,10 +28,18 @@ function AuthScreen({ screen }: { screen: Screen }) {
       "oauth_error",
     );
     if (message) setAuthNotice(message);
-    fetch(apiUrl("auth/providers"), { cache: "no-store", credentials: "include" }).then(response => response.ok ? response.json() : []).then((items: { provider: string; enabled: boolean }[]) => setProviders(Object.fromEntries(items.map(item => [item.provider, item.enabled])))).catch(() => setProviders({ google: false, microsoft: false }));
+    const controller = new AbortController();
+    setProvidersLoading(true);
+    setProvidersUnavailable(false);
+    fetch(apiUrl("auth/providers"), { cache: "no-store", credentials: "include", signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error("Provider availability failed."); return response.json(); })
+      .then((items: { provider: string; enabled: boolean }[]) => setProviders(Object.fromEntries(items.map(item => [item.provider, item.enabled]))))
+      .catch(() => { if (!controller.signal.aborted) { setProviders({ google: false, microsoft: false }); setProvidersUnavailable(true); } })
+      .finally(() => { if (!controller.signal.aborted) setProvidersLoading(false); });
     if (isRegister && new URLSearchParams(window.location.search).has("external")) {
       fetch(apiUrl("auth/external/enrollment"), { cache: "no-store", credentials: "include" }).then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Sign-up request expired. Please start provider sign-in again."); return data; }).then(data => { setExternalEnrollment(data); setSocialProvider(data.provider === "google" ? "Google" : "Microsoft"); }).catch(error => setAuthNotice(error.message));
     }
+    return () => controller.abort();
   }, [isRegister]);
   useEffect(() => {
     const card = cardRef.current;
@@ -72,6 +83,25 @@ function AuthScreen({ screen }: { screen: Screen }) {
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
+  useEffect(() => {
+    if (authNotice) {
+      noticeRef.current?.focus({ preventScroll: true });
+      noticeRef.current?.scrollIntoView({ block: "nearest", behavior: "instant" });
+    }
+  }, [authNotice]);
+  const startProvider = (provider: "google" | "microsoft") => {
+    if (providersLoading || authLoading) return;
+    if (providersUnavailable) {
+      setAuthNotice("Provider sign-in is temporarily unavailable. Please retry, or register with your email and password.");
+      return;
+    }
+    if (!providers[provider]) {
+      const label = provider === "google" ? "Google" : "Microsoft";
+      setAuthNotice(`${label} sign-in is not configured on this site. Register with your email and password, or contact the administrator.`);
+      return;
+    }
+    window.location.assign(apiUrl(`auth/${provider}`));
+  };
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isOtp) {
@@ -288,6 +318,7 @@ function AuthScreen({ screen }: { screen: Screen }) {
           </div>
           <h2>{formTitle}</h2>
           <p>{screen.description}</p>
+          {authNotice && <p className="inline-notice" ref={noticeRef} role="alert" tabIndex={-1}>{authNotice}</p>}
           {submitted ? (
             <div className="success-card">
               <span>
@@ -459,8 +490,8 @@ function AuthScreen({ screen }: { screen: Screen }) {
                     <button
                       type="button"
                       className="google-btn"
-                      disabled={!providers.google || authLoading}
-                      onClick={() => window.location.assign(apiUrl("auth/google"))}
+                      disabled={providersLoading || authLoading}
+                      onClick={() => startProvider("google")}
                     >
                       <Icon name="google" size={20} />{" "}
                       <span>Continue with Google</span>
@@ -468,16 +499,16 @@ function AuthScreen({ screen }: { screen: Screen }) {
                     <button
                       type="button"
                       className="google-btn"
-                      disabled={!providers.microsoft || authLoading}
-                      onClick={() =>
-                        window.location.assign(apiUrl("auth/microsoft"))
-                      }
+                      disabled={providersLoading || authLoading}
+                      onClick={() => startProvider("microsoft")}
                     >
                       <Icon name="microsoft" size={20} />{" "}
                       <span>Continue with Microsoft</span>
                     </button>
                   </div>
-                  {providers.google === false && providers.microsoft === false && <p className="external-signup-note">Google and Microsoft sign-in need administrator setup. Email and password sign-in is available.</p>}
+                  {providersLoading && <p className="external-signup-note" role="status">Checking sign-in options...</p>}
+                  {providersUnavailable && <p className="external-signup-note">Provider availability could not be checked. Email registration is available when the authentication service is healthy.</p>}
+                  {!providersLoading && !providersUnavailable && providers.google === false && providers.microsoft === false && <p className="external-signup-note">Google and Microsoft sign-in need administrator setup. Email and password sign-in is available.</p>}
                 </>
               )}
               {(isLogin || isRegister) && (
@@ -505,11 +536,7 @@ function AuthScreen({ screen }: { screen: Screen }) {
                   </button>
                 </p>
               )}
-              {authNotice && (
-                <p className="inline-notice" role="alert">
-                  {authNotice}
-                </p>
-              )}
+
             </form>
           )}
         </div>
@@ -529,7 +556,7 @@ export default function AppScreen({
   user?: SessionUser | null;
 }) {
   return screen.kind === "auth" ? (
-    <AuthScreen screen={screen} />
+    <AuthScreen key={screen.route} screen={screen} />
   ) : (
     <WorkspaceShell screen={screen} initialUser={user ?? null} />
   );

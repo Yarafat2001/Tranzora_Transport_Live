@@ -2071,3 +2071,7 @@ html[data-theme="dark"] .auth-illustration.otp-art::after {
   .auth-form-card { transform: none !important; }
   .auth-form-card::before { display: none; }
 }
+
+/* Account-navigation links remain identifiable without hovering. */
+.auth-form-card .auth-switch a { text-decoration: underline; text-underline-offset: 4px; padding-block: 6px; }
+.auth-form-card .inline-notice { scroll-margin-block: 100px; }
