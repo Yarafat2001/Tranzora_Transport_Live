@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Tranzora.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPostgres : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,6 +27,20 @@ namespace Tranzora.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AuditEvents", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataProtectionKeys",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FriendlyName = table.Column<string>(type: "text", nullable: true),
+                    Xml = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataProtectionKeys", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -231,33 +246,6 @@ namespace Tranzora.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OrganizationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
-                    Phone = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false),
-                    Active = table.Column<bool>(type: "boolean", nullable: false),
-                    FailedLogins = table.Column<int>(type: "integer", nullable: false),
-                    LockedUntil = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Organizations_OrganizationId",
-                        column: x => x.OrganizationId,
-                        principalTable: "Organizations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Vehicles",
                 columns: table => new
                 {
@@ -279,6 +267,8 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Vehicles", x => x.Id);
                     table.UniqueConstraint("AK_Vehicles_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Vehicles_Capacity_Nonnegative", "\"Capacity\" >= 0");
+                    table.CheckConstraint("CK_Vehicles_Odometer_Nonnegative", "\"Odometer\" >= 0");
                     table.ForeignKey(
                         name: "FK_Vehicles_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -310,6 +300,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Bookings", x => x.Id);
                     table.UniqueConstraint("AK_Bookings_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Bookings_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Bookings_Customers_CustomerId_OrganizationId",
                         columns: x => new { x.CustomerId, x.OrganizationId },
@@ -325,41 +316,38 @@ namespace Tranzora.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PasswordResets",
+                name: "Users",
                 columns: table => new
                 {
-                    TokenHash = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrganizationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: false),
+                    DriverId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Active = table.Column<bool>(type: "boolean", nullable: false),
+                    FailedLogins = table.Column<int>(type: "integer", nullable: false),
+                    Version = table.Column<long>(type: "bigint", nullable: false),
+                    LockedUntil = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PasswordResets", x => x.TokenHash);
+                    table.PrimaryKey("PK_Users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PasswordResets_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Sessions",
-                columns: table => new
-                {
-                    TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Sessions", x => x.TokenHash);
+                        name: "FK_Users_Drivers_DriverId_OrganizationId",
+                        columns: x => new { x.DriverId, x.OrganizationId },
+                        principalTable: "Drivers",
+                        principalColumns: new[] { "Id", "OrganizationId" },
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Sessions_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
+                        name: "FK_Users_Organizations_OrganizationId",
+                        column: x => x.OrganizationId,
+                        principalTable: "Organizations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -425,6 +413,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Maintenance", x => x.Id);
                     table.UniqueConstraint("AK_Maintenance_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Maintenance_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Maintenance_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -462,6 +451,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Trips", x => x.Id);
                     table.UniqueConstraint("AK_Trips_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Trips_Interval", "\"EndsAt\" > \"StartsAt\"");
                     table.ForeignKey(
                         name: "FK_Trips_Bookings_BookingId_OrganizationId",
                         columns: x => new { x.BookingId, x.OrganizationId },
@@ -489,6 +479,90 @@ namespace Tranzora.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExternalFlows",
+                columns: table => new
+                {
+                    TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Purpose = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Provider = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Email = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    SessionHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExternalFlows", x => x.TokenHash);
+                    table.ForeignKey(
+                        name: "FK_ExternalFlows_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExternalIdentities",
+                columns: table => new
+                {
+                    Provider = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Subject = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    LastUsedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExternalIdentities", x => new { x.Provider, x.Subject });
+                    table.ForeignKey(
+                        name: "FK_ExternalIdentities_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PasswordResets",
+                columns: table => new
+                {
+                    TokenHash = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PasswordResets", x => x.TokenHash);
+                    table.ForeignKey(
+                        name: "FK_PasswordResets_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Sessions",
+                columns: table => new
+                {
+                    TokenHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ExpiresAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Sessions", x => x.TokenHash);
+                    table.ForeignKey(
+                        name: "FK_Sessions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Expenses",
                 columns: table => new
                 {
@@ -511,6 +585,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Expenses", x => x.Id);
                     table.UniqueConstraint("AK_Expenses_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Expenses_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Expenses_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -554,6 +629,8 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_FuelEntries", x => x.Id);
                     table.UniqueConstraint("AK_FuelEntries_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_FuelEntries_Liters_Nonnegative", "\"Liters\" >= 0");
+                    table.CheckConstraint("CK_FuelEntries_UnitPrice_Nonnegative", "\"UnitPrice\" >= 0");
                     table.ForeignKey(
                         name: "FK_FuelEntries_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -596,6 +673,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Income", x => x.Id);
                     table.UniqueConstraint("AK_Income_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Income_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Income_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
@@ -632,6 +710,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Invoices", x => x.Id);
                     table.UniqueConstraint("AK_Invoices_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Invoices_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Invoices_Customers_CustomerId_OrganizationId",
                         columns: x => new { x.CustomerId, x.OrganizationId },
@@ -674,6 +753,7 @@ namespace Tranzora.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Payments", x => x.Id);
                     table.UniqueConstraint("AK_Payments_Id_OrganizationId", x => new { x.Id, x.OrganizationId });
+                    table.CheckConstraint("CK_Payments_Amount_Nonnegative", "\"Amount\" >= 0");
                     table.ForeignKey(
                         name: "FK_Payments_Invoices_InvoiceId_OrganizationId",
                         columns: x => new { x.InvoiceId, x.OrganizationId },
@@ -808,6 +888,22 @@ namespace Tranzora.Infrastructure.Migrations
                 name: "IX_Expenses_VehicleId_OrganizationId",
                 table: "Expenses",
                 columns: new[] { "VehicleId", "OrganizationId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExternalFlows_ExpiresAt",
+                table: "ExternalFlows",
+                column: "ExpiresAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExternalFlows_UserId",
+                table: "ExternalFlows",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExternalIdentities_UserId_Provider",
+                table: "ExternalIdentities",
+                columns: new[] { "UserId", "Provider" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_FuelEntries_OrganizationId_CreatedAt_Id",
@@ -1054,6 +1150,11 @@ namespace Tranzora.Infrastructure.Migrations
                 columns: new[] { "VehicleId", "OrganizationId" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Users_DriverId_OrganizationId",
+                table: "Users",
+                columns: new[] { "DriverId", "OrganizationId" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
@@ -1063,6 +1164,13 @@ namespace Tranzora.Infrastructure.Migrations
                 name: "IX_Users_OrganizationId",
                 table: "Users",
                 column: "OrganizationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_OrganizationId_DriverId",
+                table: "Users",
+                columns: new[] { "OrganizationId", "DriverId" },
+                unique: true,
+                filter: "\"DriverId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vehicles_OrganizationId_CreatedAt_Id",
@@ -1094,10 +1202,19 @@ namespace Tranzora.Infrastructure.Migrations
                 name: "AuditEvents");
 
             migrationBuilder.DropTable(
+                name: "DataProtectionKeys");
+
+            migrationBuilder.DropTable(
                 name: "Documents");
 
             migrationBuilder.DropTable(
                 name: "Expenses");
+
+            migrationBuilder.DropTable(
+                name: "ExternalFlows");
+
+            migrationBuilder.DropTable(
+                name: "ExternalIdentities");
 
             migrationBuilder.DropTable(
                 name: "FuelEntries");

@@ -17,3 +17,4 @@ backend/**/appsettings.*.json
 *.pfx
 *.p12
 *.pem
+.neon

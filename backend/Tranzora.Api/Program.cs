@@ -33,6 +33,17 @@ builder.AddExternalSignIn();
 builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddHostedService<BackgroundMaintenance>();
+
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("web", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -41,7 +52,13 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 var app = builder.Build();
 
-// Migrations are a separate deployment job; API replicas never race to change the schema.
+// Optional startup migration step. Only applies when RUN_MIGRATIONS=true;
+// API replicas never race to change the schema otherwise.
+if (string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase))
+{
+    await using var scope = app.Services.CreateAsyncScope();
+    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+}
 if (args.Contains("--migrate"))
 {
     await using var scope = app.Services.CreateAsyncScope();
@@ -63,6 +80,7 @@ if (args.Contains("--seed-demo"))
     return;
 }
 app.UseForwardedHeaders();
+app.UseCors("web");
 app.UseMiddleware<ApiErrors>();
 app.UseMiddleware<RequestSecurity>();
 app.UseExternalPublicOrigin();
@@ -70,6 +88,8 @@ app.UseAuthentication();
 app.UseMiddleware<SharedRateLimit>();
 app.UseAuthorization();
 app.UseMiddleware<TransactionalRequests>();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
+
 app.MapGet("/health/live", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, HttpContext context, CancellationToken ct) =>
 {
