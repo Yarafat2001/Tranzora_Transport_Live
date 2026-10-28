@@ -1,0 +1,8 @@
+**/bin
+**/obj
+**/TestResults
+**/.env*
+**/appsettings.*.json
+**/*.pfx
+**/*.p12
+**/*.pem

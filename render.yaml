@@ -1,0 +1,78 @@
+# Paid resources: review Render's cost estimate before approving deployment.
+services:
+  - type: web
+    name: tranzora-web
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: pserv
+          name: tranzora-api
+          property: hostport
+      - key: AUTH_URL
+        fromService:
+          type: web
+          name: tranzora-web
+          envVarKey: RENDER_EXTERNAL_URL
+  - type: pserv
+    name: tranzora-api
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    preDeployCommand: dotnet Tranzora.Api.dll --migrate
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: 10000
+      - key: App__PublicOrigin
+        fromService:
+          type: web
+          name: tranzora-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: App__SecureCookies
+        value: 'true'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tranzora-db
+          property: connectionString
+      - key: ConnectionStrings__Redis
+        fromService:
+          type: keyvalue
+          name: tranzora-cache
+          property: connectionString
+      - key: Smtp__Host
+        sync: false
+      - key: Smtp__From
+        sync: false
+      - key: Smtp__Username
+        sync: false
+      - key: Smtp__Password
+        sync: false
+      - key: Smtp__Port
+        value: '587'
+      - key: Smtp__EnableSsl
+        value: 'true'
+  - type: keyvalue
+    name: tranzora-cache
+    plan: 256mb
+    region: singapore
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+databases:
+  - name: tranzora-db
+    postgresMajorVersion: '18'
+    plan: 0.1c-256mb
+    region: singapore
+    databaseName: tranzora
+    user: tranzora
+    ipAllowList: []

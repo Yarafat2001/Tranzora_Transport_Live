@@ -1,0 +1,110 @@
+/* Cinematic transport illustration; the workspace palette is unchanged. */
+.lp-cinematic { --lp-blue: #6544d8; }
+html[data-theme="dark"] .lp-cinematic {
+  --lp-ink: #edf3ff; --lp-muted: #b5c1da;
+  background: radial-gradient(ellipse at 80% 17%, #37226966, transparent 36%), radial-gradient(ellipse at 28% 8%, #063c534f, transparent 36%), #070b17;
+}
+.lp-cinematic .lp-hero { align-items: center; gap: clamp(28px,4vw,70px); padding-top: 80px; padding-bottom: 80px; }
+.lp-cinematic .lp-hero h1 { font-size: clamp(40px,4.5vw,68px); line-height: 1.08; letter-spacing: -.045em; }
+.lp-cinematic .lp-hero h1 em { background-image: linear-gradient(105deg,#087e96,#7451d6); }
+html[data-theme="dark"] .lp-cinematic .lp-hero h1 em { background-image: linear-gradient(105deg,#65edff,#bb91ff); }
+.lp-cinematic .lp-stage { perspective: 1500px; isolation: isolate; min-height: 540px; }
+.lp-cinematic .lp-stage-glow { background: radial-gradient(ellipse, #713be34d, #1ad0ed24 40%,transparent 70%); filter: blur(30px); }
+.lp-cinematic .lp-app {
+  rotate: -4deg; border: 2px solid #8fa0b7; border-radius: 26px;
+  background: linear-gradient(135deg,#182638eb,#0c1226f5 70%);
+  box-shadow: 5px 7px 0 #36455d, 9px 12px 0 #17213b, 20px 35px 70px #00000055, -10px -10px 45px #42daec18, 12px 15px 60px #8755f333, inset 0 1px 1px #ffffff80;
+  backdrop-filter: blur(30px); overflow: hidden;
+}
+.lp-cinematic .lp-app-chart { transform: skewY(-4deg); overflow: visible; margin: 22px 8px 26px; }
+.lp-cinematic .lp-app-chart > span { border-radius: 4px 4px 0 0; background: linear-gradient(90deg,#4464af,#48d5f4 70%,#aceeff); box-shadow: 5px 4px 0 #34517f, 0 0 18px #36d9f333; }
+.lp-cinematic .lp-app-chart > span:nth-child(2n) { background: linear-gradient(90deg,#6035b3,#a681f5); box-shadow: 5px 4px 0 #432b7b, 0 0 18px #9866ff33; }
+.lp-digital-map { margin-top: 16px; border: 1px solid #56d9ee40; border-radius: 12px; background: linear-gradient(120deg,#0e273d,#161631); overflow: hidden; box-shadow: inset 0 0 24px #41c6e80d; }
+.lp-digital-map svg { display: block; width: 100%; }
+.lp-map-route { stroke-dasharray: 12 5; animation: telemetry-route 8s linear infinite; filter: drop-shadow(0 0 4px #26d6ff); }
+.lp-preview-caption { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: max-content; max-width: 95%; text-align: center; color: var(--lp-muted); font-size: 11px; letter-spacing: .03em; z-index: 5; }
+.lp-cinematic .lp-float { border-color: #929eb870; backdrop-filter: blur(22px); box-shadow: 0 20px 45px #09122733, inset 0 1px 0 #ffffff55; }
+html[data-theme="dark"] .lp-cinematic .lp-float { background: linear-gradient(135deg,#203447ce,#191932dd); color: #edf6ff; border-color: #6bd6f04d; box-shadow: 0 20px 45px #0008,inset 0 1px 0 #b8ebff35,0 0 30px #6e4cd51a; }
+.lp-light-trails { position: absolute; inset: -15%; z-index: -1; overflow: hidden; pointer-events: none; transform: rotate(-24deg); }
+.lp-light-trails i { position: absolute; width: 110%; height: 1px; top: 25%; left: -100%; background: linear-gradient(90deg,transparent,#44d7ed88,transparent); box-shadow: 0 0 15px #36d8f6; animation: kinetic-trail 12s linear infinite; }
+.lp-light-trails i:nth-child(2) { top: 60%; animation-delay: -4s; background: linear-gradient(90deg,transparent,#a776fb88,transparent); }
+.lp-light-trails i:nth-child(3) { top: 85%; animation-delay: -8s; }
+html[data-theme="dark"] .lp-cinematic .lp-nav { border-color: #a7d2ee3d; background: radial-gradient(260px circle at 30% 0, #93c5fd29, transparent 62%), linear-gradient(115deg, #142534ce, #1d1631cf); box-shadow: 0 18px 55px #0005, inset 0 1px 0 #ffffff20, inset 0 -1px 0 #ffffff0a; backdrop-filter: blur(25px) saturate(145%); }
+html[data-theme="dark"] .lp-cinematic :is(.lp-btn-primary,.lp-cta .lp-btn-primary) { background: linear-gradient(115deg,#3c55c7,#7634c3); color: #fff; border-color: #ae9bff80; box-shadow: 0 8px 28px #6c3ad640,inset 0 1px 0 #ffffff40; }
+@keyframes kinetic-trail { to { transform: translateX(210%); } }
+@keyframes telemetry-route { to { stroke-dashoffset: -136; } }
+@media(max-width:1000px) { .lp-cinematic .lp-hero { padding-top: 46px; padding-bottom: 45px; } .lp-cinematic .lp-stage { min-height: 500px; } }
+@media(max-width:560px) { .lp-cinematic .lp-hero { padding-top: 32px; gap: 32px; } .lp-cinematic .lp-stage { min-height: 460px; } .lp-cinematic .lp-app { rotate: -2deg; } .lp-cinematic .lp-hero h1 { font-size: 39px; } .lp-preview-caption { font-size: 10px; } }
+@media(prefers-reduced-motion:reduce) { .lp-light-trails i, .lp-map-route { animation: none; } }
+.lp-cinematic .lp-preview-caption {
+  top: -12px; bottom: auto; left: auto; right: 0; transform: none;
+  padding: 7px 12px; border: 1px solid var(--ui-border); border-radius: 999px;
+  background: var(--ui-surface); color: var(--ui-ink); font-size: 11px;
+}
+@media(max-width:560px) { .lp-cinematic .lp-preview-caption { top: -8px; right: 4px; font-size: 10px; } }
+
+.lp-cinematic { overflow-x: clip; }
+
+/* Bengali conjuncts and matras pull apart under the Latin label tracking, so Bangla mode drops it on tracked label surfaces. */
+html[lang="bn"] :is(.lp-eyebrow, .lp-footer-links b, .lp-app-head small),
+html[lang="bn"] .workspace-shell :is(.page-eyebrow, .nav-group-label, .brand small, .workspace small, thead th) { letter-spacing: normal; }
+.lp-illustration-note { position: relative; z-index: 1; width: min(1180px,calc(100% - 40px)); margin: 0 auto 16px; color: var(--lp-muted); font-size: 12px; text-align: center; line-height: 1.6; }
+
+/* Use one focus indicator around the complete search control in both themes. */
+.workspace-shell .top-search input:focus,
+html[data-theme="dark"] .workspace-shell .top-search input:focus {
+  outline: none;
+  outline-offset: 0;
+}
+
+/* Shared responsive gutters keep the landing sections and navbar aligned. */
+.lp-cinematic {
+  --landing-gutter: clamp(14px, 3vw, 56px);
+  --landing-width: min(1600px, calc(100% - var(--landing-gutter) * 2));
+  display: flow-root;
+}
+.lp-cinematic :is(.lp-nav, .lp-hero, .lp-stats, .lp-section, .lp-workflow, .lp-cta, .lp-footer, .lp-illustration-note) {
+  width: var(--landing-width);
+}
+.lp-cinematic .lp-nav {
+  min-height: 68px;
+  height: auto;
+  margin-top: 14px;
+  padding: 10px 16px;
+  gap: 16px;
+}
+.lp-cinematic .lp-nav-actions { flex-shrink: 0; }
+.lp-cinematic .lp-hero {
+  padding-block: clamp(32px, 4vw, 64px);
+  gap: clamp(24px, 4vw, 64px);
+}
+.lp-cinematic .lp-hero-copy { min-width: 0; max-width: 720px; }
+.lp-cinematic .lp-hero h1 { font-size: clamp(36px, 4vw, 68px); line-height: 1.14; text-wrap: balance; }
+.lp-cinematic .lp-hero-copy > p { max-width: 60ch; }
+.workspace-shell .topbar,
+html[data-theme="dark"] .workspace-shell .topbar {
+  min-height: 68px;
+  height: auto;
+  padding: 10px 16px;
+}
+@media (min-width: 1025px) {
+  .lp-cinematic .lp-hero { min-height: min(760px, calc(100svh - 96px)); }
+}
+@media (max-width: 760px) {
+  .lp-cinematic .lp-nav { min-height: 64px; padding: 10px 12px; gap: 10px; }
+  .lp-cinematic .lp-nav-actions { gap: 8px; }
+  .lp-cinematic .lp-nav-actions :is(.lp-lang-toggle, .lp-theme-toggle) { width: 40px; height: 40px; flex-shrink: 0; }
+  .workspace-shell .topbar,
+  html[data-theme="dark"] .workspace-shell .topbar { padding: 10px; gap: 10px; }
+}
+@media (max-width: 480px) {
+  .lp-cinematic .lp-nav { flex-wrap: wrap; }
+  .lp-cinematic .lp-brand { min-height: 40px; }
+  .lp-cinematic .lp-nav-actions { margin-left: auto; }
+  .lp-cinematic .lp-nav-actions .lp-btn-primary { padding-inline: 12px; }
+  .lp-cinematic .lp-hero h1 { font-size: clamp(32px, 8.8vw, 40px); }
+}
+@media (max-width: 360px) {
+  .lp-cinematic .lp-nav-actions { width: 100%; justify-content: flex-end; }
+  .lp-cinematic .lp-nav-actions .lp-btn-primary { flex: 1; justify-content: center; }
+}

@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Tranzora.Domain/Tranzora.Domain.csproj" />
+  <Project Path="Tranzora.Application/Tranzora.Application.csproj" />
+  <Project Path="Tranzora.Infrastructure/Tranzora.Infrastructure.csproj" />
+  <Project Path="Tranzora.Api/Tranzora.Api.csproj" />
+</Solution>

@@ -1,0 +1,35 @@
+# Add to docker-compose.yml; this does not replace or delete database volumes.
+services:
+  postgres:
+    build: ./deploy/postgres
+    image: tranzora-postgres:18-backup
+    environment:
+      PGBACKREST_PG1_USER: ${POSTGRES_USER:-tranzora}
+    command: ["postgres", "-c", "archive_mode=on", "-c", "archive_timeout=60s", "-c", "archive_command=pgbackrest --stanza=tranzora archive-push %p"]
+    volumes:
+      - tranzora_backup:/var/lib/pgbackrest
+      - tranzora_socket:/var/run/postgresql
+  backup:
+    build: ./deploy/postgres
+    image: tranzora-postgres:18-backup
+    user: postgres
+    entrypoint: ["/usr/local/bin/tranzora-backup"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tranzora}
+      POSTGRES_USER: ${POSTGRES_USER:-tranzora}
+    volumes:
+      - tranzora_postgres:/var/lib/postgresql:ro
+      - tranzora_backup:/var/lib/pgbackrest
+      - tranzora_socket:/var/run/postgresql
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /var/lib/pgbackrest/last-success && find /var/lib/pgbackrest/last-success -mmin -1560 | grep -q ."]
+      interval: 5m
+      timeout: 5s
+      retries: 1
+volumes:
+  tranzora_backup:
+  tranzora_socket:

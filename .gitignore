@@ -6,3 +6,14 @@ out/
 !.env.example
 .DS_Store
 Thumbs.db
+**/bin/
+**/obj/
+.dotnet/
+TestResults/
+playwright-report/
+*.tsbuildinfo
+.env.smtp-api
+backend/**/appsettings.*.json
+*.pfx
+*.p12
+*.pem

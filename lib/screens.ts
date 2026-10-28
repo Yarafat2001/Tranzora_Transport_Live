@@ -15,13 +15,12 @@ export type ScreenKind =
   | "backup"
   | "database"
   | "permissions"
-  | "integrations";
+  | "integrations"
+  | "form";
 
 export type Screen = {
   id: number;
-  board: number;
-  quadrant: number;
-  slug: string;
+  route: string;
   title: string;
   description: string;
   section: string;
@@ -29,7 +28,40 @@ export type Screen = {
   role: string;
 };
 
-const boards: Array<Array<[string, ScreenKind]>> = [
+const productRoutes = [
+  "/login", "/register", "/forgot-password", "/verify-otp",
+  "/dashboard", "/trips", "/vehicles", "/drivers",
+  "/customers", "/bookings", "/expenses", "/income",
+  "/reports", "/maintenance", "/users", "/settings",
+  "/settings/profile", "/subscription", "/notifications", "/audit-logs",
+  "/trips/overview", "/bookings/overview", "/reports/vehicles", "/reports/profit-loss",
+  "/reports/drivers/performance", "/fuel/analytics", "/geofencing", "/documents",
+  "/invoices", "/customers/overview", "/expenses/categories", "/settings/payments",
+  "/vehicles/overview", "/drivers/overview", "/routes", "/maintenance/manage",
+  "/expenses/overview", "/income/overview", "/reports/overview", "/settings/general",
+  "/users/overview", "/roles-permissions", "/settings/system", "/settings/backup",
+  "/settings/database", "/settings/security", "/audit-logs/security", "/settings/profile/account",
+  "/settings/notifications", "/settings/appearance", "/settings/security/password", "/system/activity",
+  "/trips/manage", "/bookings/manage", "/tracking/vehicles", "/fuel",
+  "/income/analytics", "/reports/generate", "/maintenance/schedule", "/expenses/categories/analytics",
+  "/passengers", "/bookings/all", "/tracking/live", "/analytics",
+  "/trips/all", "/drivers/all", "/customers/all", "/maintenance/analytics-overview",
+  "/reports/drivers", "/reports/customers", "/reports/trips", "/reports/monthly-yearly",
+  "/bookings/history", "/expenses/history", "/vehicles/all", "/analytics/operations",
+  "/analytics/customers", "/bookings/calendar", "/analytics/maintenance", "/settings/system/general",
+  "/reports/income-expense", "/notifications/all", "/settings/payments/methods", "/settings/backup-restore",
+  "/tracking/trips", "/vehicles/DHA-11-4321", "/reports/drivers/performance-table", "/reports/analytics",
+  "/customers/CUS-1001", "/bookings/BKG-2048", "/income/by-date", "/maintenance/history",
+  "/drivers/manage", "/fuel/management", "/users/manage", "/settings/workspace",
+  "/system/logs", "/expenses/analytics", "/routes/optimization", "/performance",
+  "/revenue/analytics", "/expenses/manage", "/bookings/manage/all", "/maintenance/vehicles",
+  "/alerts", "/notifications/details", "/reports/center", "/help-support",
+  "/trips/analytics", "/tracking/fleet", "/finance/summary", "/settings/company",
+  "/suppliers", "/payroll", "/roles-permissions/manage", "/settings/integrations",
+  "/income/manage", "/finance/expenses/analytics", "/reports/library", "/users/manage/all",
+] as const;
+
+const screenGroups: Array<Array<[string, ScreenKind]>> = [
   [["Login", "auth"], ["Register", "auth"], ["Forgot Password", "auth"], ["OTP Verification", "auth"]],
   [["Dashboard Overview", "overview"], ["Trip Management", "table"], ["Vehicle Management", "table"], ["Driver Management", "table"]],
   [["Customer Management", "table"], ["Booking Management", "table"], ["Expense Management", "table"], ["Income Management", "table"]],
@@ -80,25 +112,24 @@ const descriptions: Record<ScreenKind, string> = {
   database: "Manage and monitor database performance and operations.",
   permissions: "Manage roles and permissions for system access.",
   integrations: "Connect and manage third-party services.",
+  form: "Create a complete, connected transport business record.",
 };
 
-const roleForBoard = (board: number) => {
-  if (board <= 5) return "Admin Portal";
-  if (board <= 13) return "Fleet Manager";
-  if (board <= 18) return "Trip Manager";
-  if (board <= 23) return "Operations Manager";
-  if (board <= 27) return "Business Owner";
+const roleForGroup = (group: number) => {
+  if (group <= 5) return "Admin Portal";
+  if (group <= 13) return "Fleet Manager";
+  if (group <= 18) return "Trip Manager";
+  if (group <= 23) return "Operations Manager";
+  if (group <= 27) return "Business Owner";
   return "Finance Manager";
 };
 
-export const screens: Screen[] = boards.flatMap((items, boardIndex) =>
-  items.map(([title, kind], quadrantIndex) => {
-    const id = boardIndex * 4 + quadrantIndex + 1;
+export const screens: Screen[] = screenGroups.flatMap((items, groupIndex) =>
+  items.map(([title, kind], pageIndex) => {
+    const id = groupIndex * 4 + pageIndex + 1;
     return {
       id,
-      board: boardIndex + 1,
-      quadrant: quadrantIndex + 1,
-      slug: `${String(id).padStart(3, "0")}-${title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`,
+      route: productRoutes[id - 1],
       title,
       description: kind === "auth" ? ({
         Login: "Enter your email and password to continue",
@@ -108,12 +139,28 @@ export const screens: Screen[] = boards.flatMap((items, boardIndex) =>
       }[title] ?? descriptions.auth) : descriptions[kind as ScreenKind],
       section: title.replace(/ Management| Overview| Analytics| Report| Settings| Details| Dashboard/g, ""),
       kind: kind as ScreenKind,
-      role: roleForBoard(boardIndex + 1),
+      role: roleForGroup(groupIndex + 1),
     };
   }),
 );
 
-export const getScreen = (slug: string) => screens.find((screen) => screen.slug === slug);
+export const getScreenByRoute = (route: string) => screens.find((screen) => screen.route.toLowerCase() === route.toLowerCase());
+
+export const navigationRoutes: Record<string, string> = {
+  Dashboard: "/dashboard",
+  Trips: "/trips",
+  Bookings: "/bookings",
+  Vehicles: "/vehicles",
+  Drivers: "/drivers",
+  Customers: "/customers",
+  Maintenance: "/maintenance",
+  Fuel: "/fuel",
+  Expenses: "/expenses",
+  Income: "/income",
+  Reports: "/reports",
+  Users: "/users",
+  Settings: "/settings",
+};
 
 export const navigation = [
   "Dashboard",

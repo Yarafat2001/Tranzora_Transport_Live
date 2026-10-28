@@ -1,0 +1,424 @@
+/* Color roles are shared across surfaces; glass and depth must never depend on
+   pale text. Light and dark controls use the same contrast-safe action colors. */
+:root {
+  --ui-ink: #20304a;
+  --ui-muted: #415570;
+  --ui-link: #3e369b;
+  --ui-surface: #f2f6fc;
+  --ui-border: #74859c;
+  --ui-disabled: #dbe3ee;
+  --ui-disabled-ink: #40516b;
+  --ui-success: #146044;
+  --ui-success-bg: #def3e9;
+  --ui-warning: #75500e;
+  --ui-warning-bg: #fff0cc;
+  --ui-error: #a3243c;
+  --ui-error-bg: #fde8ec;
+}
+html[data-theme="dark"] {
+  --ui-ink: #e2eaf5;
+  --ui-muted: #b6c5da;
+  --ui-link: #c5c1ff;
+  --ui-surface: #1c2b40;
+  --ui-border: #7387a4;
+  --ui-disabled: #28384e;
+  --ui-disabled-ink: #bdcadd;
+  --ui-success: #acf1cf;
+  --ui-success-bg: #173c33;
+  --ui-warning: #ffe0a0;
+  --ui-warning-bg: #45351b;
+  --ui-error: #ffbdca;
+  --ui-error-bg: #482435;
+}
+.workspace-shell,
+html[data-theme="dark"] .workspace-shell {
+  --ws-ink: var(--ui-ink);
+  --ws-muted: var(--ui-muted);
+  --ws-accent: var(--ui-link);
+  --ws-well-edge: var(--ui-border);
+  --ws-control-edge: var(--ui-border);
+}
+.workspace-shell :is(.page-heading h1, .stat-copy strong),
+html[data-theme="dark"]
+  .workspace-shell
+  :is(.page-heading h1, .stat-copy strong) {
+  color: var(--ui-ink);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  background-clip: border-box;
+}
+.workspace-shell
+  :is(
+    .page-eyebrow,
+    .breadcrumb,
+    .breadcrumb a,
+    .breadcrumb span,
+    .connection-status,
+    .stat-copy > span,
+    .stat-copy small,
+    .workspace-footer,
+    .panel-title p,
+    .driver-stats small,
+    .vehicle-card > p,
+    .vehicle-specs dt,
+    .empty-state,
+    .navigation-results small
+  ),
+html[data-theme="dark"]
+  .workspace-shell
+  :is(
+    .page-eyebrow,
+    .breadcrumb,
+    .breadcrumb a,
+    .breadcrumb span,
+    .connection-status,
+    .stat-copy > span,
+    .stat-copy small,
+    .workspace-footer,
+    .panel-title p,
+    .driver-stats small,
+    .vehicle-card > p,
+    .vehicle-specs dt,
+    .empty-state,
+    .navigation-results small
+  ) {
+  color: var(--ui-muted);
+}
+.workspace-shell .user-menu small,
+html[data-theme="dark"] .workspace-shell .user-menu small {
+  color: var(--ui-muted) !important;
+}
+.workspace-shell :is(.vehicle-specs dd, .empty-state h3) {
+  color: var(--ui-ink);
+}
+.workspace-shell .role-badge,
+.workspace-shell .profile-summary .role-badge,
+html[data-theme="dark"] .workspace-shell .role-badge,
+html[data-theme="dark"] .workspace-shell .profile-summary .role-badge {
+  color: var(--ui-link);
+}
+.workspace-shell .profile-summary > a,
+html[data-theme="dark"] .workspace-shell .profile-summary > a {
+  color: var(--ui-link);
+}
+.workspace-shell .avatar,
+.workspace-shell .profile-orbit .avatar,
+html[data-theme="dark"] .workspace-shell .avatar,
+html[data-theme="dark"] .workspace-shell .profile-orbit .avatar {
+  color: #fff;
+  background: linear-gradient(140deg, #6252b9, #493a98);
+}
+.workspace-shell .primary,
+html[data-theme="dark"] .workspace-shell .primary,
+.auth-page .auth-form-card .auth-submit,
+.lp .lp-btn-primary,
+html[data-theme="dark"] .lp .lp-btn-primary {
+  color: #fff;
+  -webkit-text-fill-color: currentColor;
+  background: linear-gradient(135deg, #5144bc, #3d3297);
+  border-color: #6b60cf;
+  box-shadow:
+    0 8px 20px -12px #43359e99,
+    inset 0 1px 0 #ffffff4d;
+}
+.workspace-shell .primary:hover:not(:disabled),
+html[data-theme="dark"] .workspace-shell .primary:hover:not(:disabled),
+.auth-page .auth-form-card .auth-submit:hover:not(:disabled),
+.lp .lp-btn-primary:hover,
+html[data-theme="dark"] .lp .lp-btn-primary:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #4335aa, #30277f);
+}
+.workspace-shell button:disabled,
+html[data-theme="dark"] .workspace-shell button:disabled,
+.auth-page button:disabled {
+  opacity: 1;
+  color: var(--ui-disabled-ink);
+  -webkit-text-fill-color: currentColor;
+  background: var(--ui-disabled);
+  border: 1px solid var(--ui-border);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.workspace-shell .record-status,
+html[data-theme="dark"] .workspace-shell .record-status {
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  border: 1px solid var(--ui-border);
+}
+.workspace-shell
+  :is(
+    .status-active,
+    .status-paid,
+    .status-confirmed,
+    .status-completed,
+    .record-status[data-status="Completed"]
+  ),
+html[data-theme="dark"]
+  .workspace-shell
+  :is(
+    .status-active,
+    .status-paid,
+    .status-confirmed,
+    .status-completed,
+    .record-status[data-status="Completed"]
+  ) {
+  color: var(--ui-success);
+  background: var(--ui-success-bg);
+  border-color: var(--ui-success);
+}
+.workspace-shell
+  :is(
+    .status-pending,
+    .status-scheduled,
+    .status-inprogress,
+    .record-status[data-status="Scheduled"],
+    .record-status[data-status="InProgress"]
+  ),
+html[data-theme="dark"]
+  .workspace-shell
+  :is(
+    .status-pending,
+    .status-scheduled,
+    .status-inprogress,
+    .record-status[data-status="Scheduled"],
+    .record-status[data-status="InProgress"]
+  ) {
+  color: var(--ui-warning);
+  background: var(--ui-warning-bg);
+  border-color: var(--ui-warning);
+}
+.workspace-shell :is(.status-cancelled, .status-inactive, .status-overdue),
+html[data-theme="dark"]
+  .workspace-shell
+  :is(.status-cancelled, .status-inactive, .status-overdue) {
+  color: var(--ui-error);
+  background: var(--ui-error-bg);
+  border-color: var(--ui-error);
+}
+.workspace-shell [role="alert"],
+.auth-page [role="alert"] {
+  color: var(--ui-error);
+  background: var(--ui-error-bg);
+  border: 1px solid var(--ui-error);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.workspace-shell .account-notice {
+  color: var(--ui-success);
+  background: var(--ui-success-bg);
+  border: 1px solid var(--ui-success);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.workspace-shell :is(input, textarea)::placeholder,
+html[data-theme="dark"] .workspace-shell :is(input, textarea)::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+.workspace-shell .top-search:focus-within,
+html[data-theme="dark"] .workspace-shell .top-search:focus-within {
+  background: var(--ws-well);
+}
+.workspace-shell :is(input, textarea, select):focus,
+html[data-theme="dark"] .workspace-shell :is(input, textarea, select):focus {
+  outline: 2px solid var(--ui-link);
+  outline-offset: 2px;
+}
+.workspace-shell .top-search input:focus {
+  outline: 0;
+}
+.workspace-shell
+  :is(.driver-stat-icon, .account-panel-header > span, .record-form-icon) {
+  color: #5143aa;
+  background: #e4e3f6;
+}
+html[data-theme="dark"]
+  .workspace-shell
+  :is(.driver-stat-icon, .account-panel-header > span, .record-form-icon) {
+  color: #d0c9ff;
+  background: #343451;
+}
+.workspace-shell .sidebar nav a {
+  color: #465b76;
+}
+.workspace-shell .sidebar nav a:not(.active) .nav-icon .icon {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+.workspace-shell
+  :is(
+    .profile-detail > .icon,
+    .profile-hint .icon,
+    .account-note > .icon,
+    .trip-route > .icon,
+    .empty-state > .icon
+  ) {
+  color: var(--ui-link);
+}
+.auth-page .auth-field > .icon {
+  color: var(--a-label);
+}
+html[data-theme="dark"] .workspace-shell .sidebar nav a {
+  color: #c0cde0;
+}
+.workspace-shell .sidebar nav a.active .nav-icon,
+html[data-theme="dark"] .workspace-shell .sidebar nav a.active .nav-icon {
+  background: linear-gradient(140deg, #d94456, #bc2d46);
+}
+.auth-page {
+  --a-muted: #415570;
+  --a-label: #3d526e;
+  --a-placeholder: #50617a;
+  --a-link: #224e9e;
+  --a-accent: #224e9e;
+}
+html[data-theme="dark"] .auth-page {
+  --a-muted: #b6c5da;
+  --a-label: #bdcadc;
+  --a-placeholder: #a5b7cf;
+  --a-link: #adcaff;
+  --a-accent: #adcaff;
+}
+.auth-page input::placeholder,
+.auth-page .password-input input::placeholder {
+  color: var(--a-placeholder);
+  opacity: 1;
+}
+.auth-page .auth-switch {
+  color: var(--a-muted);
+}
+.lp
+  :is(
+    .lp-brand-copy small,
+    .lp-stats small,
+    .lp-mini-gauge small,
+    .lp-float small,
+    .lp-footer-brand p,
+    .lp-footer-links b,
+    .lp-copyright
+  ) {
+  color: #4b607c;
+}
+html[data-theme="dark"]
+  .lp
+  :is(
+    .lp-brand-copy small,
+    .lp-stats small,
+    .lp-mini-gauge small,
+    .lp-float small,
+    .lp-footer-brand p,
+    .lp-footer-links b,
+    .lp-copyright
+  ) {
+  color: #afc1d9;
+}
+.lp .lp-mini-people em {
+  color: #234c9f;
+}
+html[data-theme="dark"] .lp .lp-mini-people em {
+  color: #b6d4ff;
+}
+.lp .lp-mini-avatar {
+  margin-left: 5px;
+  color: #263c60;
+}
+.lp .lp-mini-avatar-3 {
+  color: #7c3c0c;
+}
+.lp .lp-step-number {
+  color: #60728e;
+}
+html[data-theme="dark"] .lp .lp-step-number {
+  color: #a4bbdb;
+}
+.workspace-shell .connected-accounts { margin-top: 24px; }
+.workspace-shell .connected-accounts h3 { font-size: 20px; margin: 0 0 10px; }
+.workspace-shell .connected-provider { display: flex; align-items: center; gap: 14px; padding: 18px 0; border-top: 1px solid var(--ws-control-edge); }
+.workspace-shell .connected-provider > span:nth-child(2) { display: grid; gap: 4px; min-width: 0; }
+.workspace-shell .connected-provider b { color: var(--ui-ink); font-size: 15px; }
+.workspace-shell .connected-provider small { color: var(--ui-muted); font-size: 13px; }
+.workspace-shell .connected-provider-icon { width: 42px; height: 42px; flex: none; display: grid; place-items: center; border-radius: 13px; background: var(--ui-surface); border: 1px solid var(--ui-border); }
+.workspace-shell .connected-provider button { margin-left: auto; }
+.auth-page .external-signup-note { font-size: 13px; line-height: 1.65; color: var(--a-muted); margin: 12px 0 18px; }
+@media (max-width: 700px) { .workspace-shell .connected-provider { flex-wrap: wrap; } .workspace-shell .connected-provider button { flex-basis: 100%; } }
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--ui-border);
+  border-radius: 18px;
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+}
+.loading-state strong {
+  font-size: 16px;
+  font-weight: 650;
+}
+.loading-state p {
+  margin: 4px 0 0;
+  color: var(--ui-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.loading-spinner {
+  display: inline-block;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--ui-border);
+  border-top-color: var(--ui-link);
+  border-radius: 50%;
+  animation: loading-turn 0.9s linear infinite;
+}
+.route-loading {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--ui-surface);
+  color: var(--ui-ink);
+  font-family: "Tranzora Bengali","Segoe UI", sans-serif;
+}
+.workspace-shell .account-loading {
+  margin-bottom: 24px;
+}
+button[aria-busy="true"]::before {
+  content: "";
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: loading-turn 0.9s linear infinite;
+  flex: none;
+}
+@keyframes loading-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner,
+  button[aria-busy="true"]::before {
+    animation: none;
+  }
+}
+/* A second row keeps language and existing actions reachable on narrow phones. */
+@media (max-width: 560px) {
+  .lp .lp-nav { height: auto; min-height: 62px; flex-wrap: wrap; gap: 12px; padding: 12px; }
+  .lp .lp-nav-actions { flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+}
+@media (max-width: 700px) {
+  .workspace-shell .topbar,
+  html[data-theme="dark"] .workspace-shell .topbar {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    height: auto;
+    gap: 10px;
+  }
+  .workspace-shell .top-search { width: 100%; max-width: none; margin: 0; }
+  .workspace-shell .header-actions { grid-column: 1 / -1; justify-content: flex-end; gap: 8px; }
+}

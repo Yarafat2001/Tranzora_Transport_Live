@@ -1,0 +1,22 @@
+node_modules
+.next
+.git
+.gitignore
+.vscode
+.env
+.env.*
+npm-debug.log*
+README.md
+tests
+Tranzora — Desktop
+Dockerfile
+docker-compose.yml
+backend
+deploy
+scripts
+compose.infrastructure.yml
+TestResults
+playwright-report
+.dotnet
+*.tsbuildinfo
+**/*.log

@@ -1,0 +1,31 @@
+/* Self-hosted variable fonts. Licenses are included in public/fonts. */
+@font-face {
+  font-family: "Tranzora Jakarta";
+  src: url("/fonts/PlusJakartaSans-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Tranzora Manrope";
+  src: url("/fonts/Manrope-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+html[lang="en"] {
+  --font-sans: "Tranzora Jakarta", "Tranzora Bengali", system-ui, sans-serif;
+  --font-display: "Tranzora Manrope", "Tranzora Bengali", system-ui, sans-serif;
+}
+html[lang="en"] body,
+html[lang="en"] :is(.workspace-shell, .lp, .auth-page, .route-loading) {
+  font-family: var(--font-sans);
+  font-kerning: normal;
+}
+html[lang="en"] :is(h1, h2, h3, .lp-brand-copy b, .brand, .stat-value) {
+  font-family: var(--font-display);
+}
+html[lang="en"] :is(h1, h2) { letter-spacing: -.035em; }
+html[lang="en"] .lp-hero h1 { font-weight: 800; letter-spacing: -.045em; line-height: 1.12; }
+html[lang="en"] :is(.lp-hero-copy > p, .page-heading p) { line-height: 1.7; }
+html[lang="en"] :is(th, td, .stat-value, .lp-app-metrics) { font-variant-numeric: tabular-nums; }

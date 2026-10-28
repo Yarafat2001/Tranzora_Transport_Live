@@ -1,0 +1,84 @@
+x-api: &api
+  build: ./backend
+  restart: unless-stopped
+  environment: &api-environment
+    ConnectionStrings__Postgres: Host=postgres;Database=${POSTGRES_DB:-tranzora};Username=${POSTGRES_USER:-tranzora};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    ConnectionStrings__Redis: redis:6379,abortConnect=false,connectTimeout=1000,syncTimeout=1000
+    App__PublicOrigin: ${AUTH_URL:-http://localhost:3000}
+    App__SecureCookies: ${APP_SECURE_COOKIES:-true}
+    App__KnownProxies__0: 172.30.0.10
+    Authentication__google__ClientId: ${GOOGLE_CLIENT_ID:-}
+    Authentication__google__ClientSecret: ${GOOGLE_CLIENT_SECRET:-}
+    Authentication__microsoft__ClientId: ${MICROSOFT_CLIENT_ID:-}
+    Authentication__microsoft__ClientSecret: ${MICROSOFT_CLIENT_SECRET:-}
+    Authentication__KeyEncryptionCertificatePath: ${OAUTH_KEY_CERTIFICATE_PATH:-}
+    Authentication__KeyEncryptionCertificatePassword: ${OAUTH_KEY_CERTIFICATE_PASSWORD:-}
+    Smtp__Port: ${SMTP_PORT:-587}
+    Smtp__EnableSsl: ${SMTP_ENABLE_SSL:-true}
+    Smtp__Host: ${SMTP_HOST:-}
+    Smtp__From: ${SMTP_FROM:-}
+    Smtp__Username: ${SMTP_USERNAME:-}
+    Smtp__Password: ${SMTP_PASSWORD:-}
+  depends_on:
+    migrate: { condition: service_completed_successfully }
+    redis: { condition: service_healthy }
+  networks: [internal]
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tranzora}
+      POSTGRES_USER: ${POSTGRES_USER:-tranzora}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: ["tranzora_postgres:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+  migrate:
+    build: ./backend
+    command: ["--migrate"]
+    environment: *api-environment
+    depends_on:
+      postgres: { condition: service_healthy }
+    networks: [internal]
+  api1:
+    <<: *api
+  api2:
+    <<: *api
+  web:
+    build: .
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://gateway:8080
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+    networks: [internal]
+  gateway:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    ports: ["3000:8080"]
+    volumes: ["./deploy/nginx.conf:/etc/nginx/nginx.conf:ro"]
+    depends_on: [api1, api2, web]
+    networks:
+      internal:
+        ipv4_address: 172.30.0.10
+volumes:
+  tranzora_postgres:
+networks:
+  internal:
+    ipam:
+      config: [{ subnet: 172.30.0.0/24 }]

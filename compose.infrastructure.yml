@@ -1,0 +1,26 @@
+# Optional local dependencies when running .NET and Next.js natively.
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: tranzora
+      POSTGRES_USER: tranzora
+      POSTGRES_PASSWORD: local-development-only
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["tranzora_postgres_dev:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tranzora -d tranzora"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  redis:
+    image: redis:8-alpine
+    ports: ["127.0.0.1:6379:6379"]
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  tranzora_postgres_dev:
