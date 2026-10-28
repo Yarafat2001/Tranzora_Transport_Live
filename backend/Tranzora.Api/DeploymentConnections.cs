@@ -19,7 +19,11 @@ public static class DeploymentConnections
             Host = uri.Host, Port = uri.IsDefaultPort ? 5432 : uri.Port,
             Database = Uri.UnescapeDataString(uri.AbsolutePath[1..]),
             Username = Uri.UnescapeDataString(credentials[0]), Password = Uri.UnescapeDataString(credentials[1]),
-            SslMode = SslMode.Require, IncludeErrorDetail = false, MaxPoolSize = 30, Timeout = 10
+            SslMode = SslMode.Require, IncludeErrorDetail = false, MaxPoolSize = 30, Timeout = 10,
+            // Default is Prefer, which probes Kerberos on every new physical connection and fails
+            // with "Cannot load library libgssapi_krb5.so.2" on the runtime image. Credentials are
+            // sent over TLS here, so GSS encryption is never negotiated.
+            GssEncryptionMode = Npgsql.GssEncryptionMode.Disable
         };
         foreach (var item in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
         {

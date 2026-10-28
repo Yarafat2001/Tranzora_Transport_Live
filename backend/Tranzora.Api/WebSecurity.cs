@@ -5,6 +5,8 @@ namespace Tranzora.Api;
 
 public static class WebSecurity
 {
+    public const string SessionCookieName = "tranzora_session";
+
     // One explicit allowlist drives CORS and mutation-origin validation.
     // Cors:AllowedOrigins remains supported for existing deployments.
     public static string[] Origins(IConfiguration config) =>
@@ -21,6 +23,16 @@ public static class WebSecurity
                 throw new InvalidOperationException("Allowed origins must be exact HTTP(S) origins without paths or wildcards.");
             return uri.GetLeftPart(UriPartial.Authority);
         }).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+    public static CookieOptions SessionCookieOptions(IConfiguration config) => new()
+    {
+        HttpOnly = true,
+        SameSite = SameSite(config),
+        Secure = config.GetValue("App:SecureCookies", true),
+        Path = "/",
+        MaxAge = TimeSpan.FromHours(24),
+        IsEssential = true
+    };
 
     public static SameSiteMode SameSite(IConfiguration config)
     {
