@@ -167,3 +167,5 @@ Responsive UI adjustment (28 October 2026): shared search focus and landing/head
 
 
 English typography is supplied as local static font assets through app/typography.css; this changes no API contracts or authentication behavior.
+
+Vercel/Render origin, credentialed CORS and cookie configuration: see [vercel-render-auth.md](vercel-render-auth.md). One configured API origin list now drives CORS and CSRF checks; SameSite=None requires Secure cookies.

@@ -11,6 +11,10 @@ using Tranzora.Domain;
 using Tranzora.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+// Render supplies PORT at runtime; an explicit URL binding takes precedence.
+if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")) &&
+    int.TryParse(builder.Configuration["PORT"], out var renderPort) && renderPort is > 0 and <= 65535)
+    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole();
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 65536);
@@ -34,14 +38,16 @@ builder.Services.AddAuthorization();
 builder.Services.AddOpenApi();
 builder.Services.AddHostedService<BackgroundMaintenance>();
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000" };
+var allowedOrigins = WebSecurity.Origins(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("web", policy =>
     {
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("ETag", "Location", "Idempotency-Replayed", "X-Request-Id");
     });
 });
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -50,6 +56,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardLimit = 1;
     foreach (var proxy in builder.Configuration.GetSection("App:KnownProxies").Get<string[]>() ?? []) options.KnownProxies.Add(IPAddress.Parse(proxy));
 });
+_ = WebSecurity.SameSite(builder.Configuration);
 var app = builder.Build();
 
 // Optional startup migration step. Only applies when RUN_MIGRATIONS=true;
@@ -118,7 +125,7 @@ if (app.Environment.IsDevelopment()) app.MapOpenApi();
 CookieOptions SessionCookie() => new()
 {
     HttpOnly = true,
-    SameSite = SameSiteMode.Lax,
+    SameSite = WebSecurity.SameSite(builder.Configuration),
     Secure = builder.Configuration.GetValue("App:SecureCookies", true),
     Path = "/",
     MaxAge = TimeSpan.FromHours(24),
@@ -145,7 +152,7 @@ auth.MapGet("/session", async (IAuthentication authentication, HttpContext conte
 auth.MapPost("/logout", async (IAuthentication authentication, HttpContext context, CancellationToken ct) =>
 {
     await authentication.Logout(context.Request.Cookies["tranzora_session"] ?? "", ct);
-    context.Response.Cookies.Delete("tranzora_session", new CookieOptions { Path = "/" });
+    context.Response.Cookies.Delete("tranzora_session", SessionCookie());
     return Results.Ok(new { ok = true });
 });
 auth.MapPost("/forgot-password", async (ResetRequest input, IAuthentication authentication, CancellationToken ct) =>

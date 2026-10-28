@@ -53,8 +53,8 @@ public sealed class RequestSecurity(RequestDelegate next, IConfiguration config)
         {
             if (context.Request.Headers["X-Tranzora-Request"] != "1") throw new AppException(403, "The X-Tranzora-Request header is required.");
             var origin = context.Request.Headers.Origin.ToString();
-            var allowedOrigins = config.GetSection("App:AllowedOrigins").Get<string[]>() ?? [];
-            if (origin.Length > 0 && origin != config["App:PublicOrigin"] && !allowedOrigins.Contains(origin)) throw new AppException(403, "Origin is not allowed.");
+            var allowedOrigins = WebSecurity.Origins(config);
+            if (origin.Length > 0 && !allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)) throw new AppException(403, "Origin is not allowed.");
             if (context.Request.ContentLength > 65536) throw new AppException(413, "Request body exceeds 64 KiB.");
             if (context.Request.Method != "DELETE" && !context.Request.HasJsonContentType()) throw new AppException(415, "Use application/json.");
         }

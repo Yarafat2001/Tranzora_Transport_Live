@@ -16,7 +16,7 @@ public static class ExternalSignIn
     public static Uri Origin(IConfiguration config) => new(config["App:PublicOrigin"]!);
     public static CookieOptions Cookie(IConfiguration config, bool enrollment = false) => new()
     {
-        HttpOnly = true, SameSite = SameSiteMode.Lax, Secure = config.GetValue("App:SecureCookies", true), Path = enrollment ? "/api/auth/external" : "/", MaxAge = enrollment ? TimeSpan.FromMinutes(10) : TimeSpan.FromHours(24), IsEssential = true
+        HttpOnly = true, SameSite = WebSecurity.SameSite(config), Secure = config.GetValue("App:SecureCookies", true), Path = enrollment ? "/api/auth/external" : "/", MaxAge = enrollment ? TimeSpan.FromMinutes(10) : TimeSpan.FromHours(24), IsEssential = true
     };
     public static void AddExternalSignIn(this WebApplicationBuilder builder)
     {
@@ -35,7 +35,7 @@ public static class ExternalSignIn
         if (!string.IsNullOrWhiteSpace(certificatePath)) protection.ProtectKeysWithCertificate(X509CertificateLoader.LoadPkcs12FromFile(certificatePath, config["Authentication:KeyEncryptionCertificatePassword"]));
         else if (!origin.IsLoopback && Providers.Any(provider => Enabled(config, provider))) throw new InvalidOperationException("Configure Authentication:KeyEncryptionCertificatePath to encrypt the shared OAuth key ring before enabling public provider sign-in.");
         builder.Services.AddScoped<IExternalAuthentication, Tranzora.Infrastructure.Authentication>();
-        var authentication = builder.Services.AddAuthentication().AddCookie("External", options => { options.Cookie.Name = "tranzora_external_ticket"; options.ExpireTimeSpan = TimeSpan.FromMinutes(5); options.Cookie.HttpOnly = true; options.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
+        var authentication = builder.Services.AddAuthentication().AddCookie("External", options => { options.Cookie.Name = "tranzora_external_ticket"; options.ExpireTimeSpan = TimeSpan.FromMinutes(5); options.Cookie.HttpOnly = true; options.Cookie.SameSite = WebSecurity.SameSite(config); options.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
         if (Enabled(config, "google")) authentication.AddGoogle("google", options => Configure(options, "google", config));
         if (Enabled(config, "microsoft")) authentication.AddMicrosoftAccount("microsoft", options => Configure(options, "microsoft", config));
     }
@@ -49,7 +49,7 @@ public static class ExternalSignIn
         options.SaveTokens = false;
         options.RemoteAuthenticationTimeout = TimeSpan.FromMinutes(10);
         options.CorrelationCookie.Name = $".tranzora.oauth.{provider}.";
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SameSite = WebSecurity.SameSite(config);
         options.CorrelationCookie.SecurePolicy = config.GetValue("App:SecureCookies", true) ? CookieSecurePolicy.Always : CookieSecurePolicy.None;
         if (config["Authentication:TestProviderBaseUrl"] is string testingUrl)
         {

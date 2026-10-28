@@ -23,10 +23,15 @@ async function proxy(
     const selfOrigin = host
       ? `${request.nextUrl.protocol}//${host}`
       : "";
-    const allowed =
-      process.env.NODE_ENV === "development"
-        ? [configured, selfOrigin]
-        : [configured];
+    const additional = (process.env.APP_ALLOWED_ORIGINS ?? "").split(",").map(value => value.trim()).filter(Boolean).map(value => {
+      const url = new URL(value);
+      if (!["http:", "https:"].includes(url.protocol) || url.username || url.password || url.pathname !== "/" || url.search || url.hash)
+        throw new Error("APP_ALLOWED_ORIGINS must contain exact HTTP(S) origins.");
+      return url.origin;
+    });
+    const allowed = process.env.NODE_ENV === "development"
+      ? [configured, selfOrigin, ...additional]
+      : [configured, ...additional];
     const origin = request.headers.get("origin");
     if (
       (origin && !allowed.includes(origin)) ||

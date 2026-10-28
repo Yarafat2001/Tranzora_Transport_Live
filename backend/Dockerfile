@@ -12,7 +12,7 @@ RUN dotnet publish Tranzora.Api/Tranzora.Api.csproj -c Release -o /out --no-rest
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=build /out .
-ENV ASPNETCORE_URLS=http://+:${PORT:-8080}
+ENV ASPNETCORE_HTTP_PORTS=8080
 USER app
-EXPOSE ${PORT:-8080}
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "Tranzora.Api.dll"]

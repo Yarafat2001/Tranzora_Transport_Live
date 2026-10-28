@@ -8,7 +8,7 @@ public static class DeploymentConnections
     public static string Postgres(IConfiguration config)
     {
         if (string.IsNullOrWhiteSpace(config["DATABASE_URL"]))
-            return config.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("PostgreSQL configuration is required.");
+            return config.GetConnectionString("Postgres") ?? config.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("PostgreSQL configuration is required.");
         if (!Uri.TryCreate(config["DATABASE_URL"], UriKind.Absolute, out var uri) || uri.Scheme is not ("postgres" or "postgresql"))
             throw new InvalidOperationException("DATABASE_URL must be a PostgreSQL URL.");
         var credentials = uri.UserInfo.Split(':', 2);

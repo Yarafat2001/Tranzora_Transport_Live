@@ -11,8 +11,6 @@ tests
 Tranzora — Desktop
 Dockerfile
 docker-compose.yml
-backend
-deploy
 scripts
 compose.infrastructure.yml
 TestResults
@@ -20,3 +18,15 @@ playwright-report
 .dotnet
 *.tsbuildinfo
 **/*.log
+**/bin
+**/obj
+**/appsettings.*.json
+**/*.pfx
+**/*.p12
+**/*.pem
+*.out
+*.err
+.neon
+.claude
+.codex
+.aws

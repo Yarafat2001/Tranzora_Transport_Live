@@ -1,3 +1,14 @@
+// NEXT_PUBLIC_API_URL is the browser API base and is fixed at build time.
+// Use this site's /api proxy when server-rendered pages need its session cookie.
+export function apiUrl(path: string): string {
+  const configured = (process.env.NEXT_PUBLIC_API_URL || "/api").replace(/\/+$/, "");
+  const base = /^https?:\/\//.test(configured)
+    ? (() => { const url = new URL(configured); if (url.username || url.password || url.search || url.hash) throw new Error("Invalid NEXT_PUBLIC_API_URL."); return url.pathname === "/" ? `${url.origin}/api` : configured; })()
+    : configured;
+  if (base.startsWith("//") || (!base.startsWith("/") && !/^https?:\/\//.test(base))) throw new Error("NEXT_PUBLIC_API_URL must be an HTTP(S) URL or an absolute path.");
+  return `${base}/${path.replace(/^\/+/, "")}`;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -8,9 +19,10 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api/${path}`, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     cache: "no-store",
+    credentials: "include",
     headers: {
       ...(init.body ? { "Content-Type": "application/json" } : {}),
       ...(init.method && init.method !== "GET"

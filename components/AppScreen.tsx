@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api-client";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { Screen } from "@/lib/screens";
 import type { SessionUser } from "@/lib/auth";
@@ -24,9 +25,9 @@ function AuthScreen({ screen }: { screen: Screen }) {
       "oauth_error",
     );
     if (message) setAuthNotice(message);
-    fetch("/api/auth/providers", { cache: "no-store" }).then(response => response.ok ? response.json() : []).then((items: { provider: string; enabled: boolean }[]) => setProviders(Object.fromEntries(items.map(item => [item.provider, item.enabled])))).catch(() => setProviders({ google: false, microsoft: false }));
+    fetch(apiUrl("auth/providers"), { cache: "no-store", credentials: "include" }).then(response => response.ok ? response.json() : []).then((items: { provider: string; enabled: boolean }[]) => setProviders(Object.fromEntries(items.map(item => [item.provider, item.enabled])))).catch(() => setProviders({ google: false, microsoft: false }));
     if (isRegister && new URLSearchParams(window.location.search).has("external")) {
-      fetch("/api/auth/external/enrollment", { cache: "no-store" }).then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Sign-up request expired. Please start provider sign-in again."); return data; }).then(data => { setExternalEnrollment(data); setSocialProvider(data.provider === "google" ? "Google" : "Microsoft"); }).catch(error => setAuthNotice(error.message));
+      fetch(apiUrl("auth/external/enrollment"), { cache: "no-store", credentials: "include" }).then(async response => { const data = await response.json(); if (!response.ok) throw new Error(data.error ?? "Sign-up request expired. Please start provider sign-in again."); return data; }).then(data => { setExternalEnrollment(data); setSocialProvider(data.provider === "google" ? "Google" : "Microsoft"); }).catch(error => setAuthNotice(error.message));
     }
   }, [isRegister]);
   useEffect(() => {
@@ -99,9 +100,10 @@ function AuthScreen({ screen }: { screen: Screen }) {
     };
     try {
       const response = await fetch(
-        `/api/auth/${isLogin ? "login" : isRegister ? externalEnrollment ? "external/register" : "register" : "forgot-password"}`,
+        apiUrl(`auth/${isLogin ? "login" : isRegister ? externalEnrollment ? "external/register" : "register" : "forgot-password"}`),
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
             "X-Tranzora-Request": "1",
@@ -458,7 +460,7 @@ function AuthScreen({ screen }: { screen: Screen }) {
                       type="button"
                       className="google-btn"
                       disabled={!providers.google || authLoading}
-                      onClick={() => window.location.assign("/api/auth/google")}
+                      onClick={() => window.location.assign(apiUrl("auth/google"))}
                     >
                       <Icon name="google" size={20} />{" "}
                       <span>Continue with Google</span>
@@ -468,7 +470,7 @@ function AuthScreen({ screen }: { screen: Screen }) {
                       className="google-btn"
                       disabled={!providers.microsoft || authLoading}
                       onClick={() =>
-                        window.location.assign("/api/auth/microsoft")
+                        window.location.assign(apiUrl("auth/microsoft"))
                       }
                     >
                       <Icon name="microsoft" size={20} />{" "}

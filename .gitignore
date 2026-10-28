@@ -18,3 +18,6 @@ backend/**/appsettings.*.json
 *.p12
 *.pem
 .neon
+
+*.out
+*.err

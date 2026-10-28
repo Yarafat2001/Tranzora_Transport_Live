@@ -6,6 +6,6 @@ namespace Tranzora.Infrastructure;
 public sealed class DesignTimeFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args) => new(new DbContextOptionsBuilder<AppDbContext>()
-        .UseNpgsql(Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ?? "")
+        .UseNpgsql(Environment.GetEnvironmentVariable("ConnectionStrings__Postgres") ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ?? "")
         .Options);
 }
