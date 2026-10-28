@@ -189,6 +189,14 @@ public static class EndpointExtensions
 
     public static void MapResourceEndpoints(this RouteGroupBuilder api)
     {
+        api.MapGet("/dashboard", async (IOperations operations, ReadCache cache, HttpContext context, CancellationToken ct) =>
+        {
+            Permissions.Demand(context.Actor(), "dashboard", false);
+            var json = await cache.Get(context.Actor(), "dashboard", () => operations.Dashboard(context.Actor(), ct), ct);
+            return Results.Content(json, "application/json");
+        });
+        api.MapGet("/audit-logs", async ([AsParameters] PageParameters query, IOperations operations, HttpContext context, CancellationToken ct) =>
+            Results.Ok(await operations.Audit(context.Actor(), query.ToQuery(), ct)));
         api.MapGet("/{resource}", async (string resource, [AsParameters] PageParameters query, IOperations operations, ReadCache cache, HttpContext context, CancellationToken ct) =>
         {
             Permissions.Demand(context.Actor(), resource, false);

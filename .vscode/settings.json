@@ -1,0 +1,6 @@
+{
+  "dotnet.defaultSolution": "backend/Tranzora.slnx",
+  "search.exclude": {
+    "**/TestResults/**": true
+  }
+}

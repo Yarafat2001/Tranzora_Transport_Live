@@ -25,6 +25,11 @@ RUN dotnet publish Tranzora.Api/Tranzora.Api.csproj -c Release -o /out --no-rest
 # Node's Debian-built binary runs on the .NET Ubuntu runtime (newer glibc).
 # The runtime assertion below fails the image build if a dependency is missing.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runner
+# Npgsql/.NET may load the native GSSAPI library during authentication.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/* \
+    && ldconfig -p | grep -q 'libgssapi_krb5.so.2'
 WORKDIR /app
 COPY --from=deps /usr/local/bin/node /usr/local/bin/node
 RUN node --version && dotnet --list-runtimes

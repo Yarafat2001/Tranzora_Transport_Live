@@ -195,3 +195,5 @@ The landing navbar and content share responsive gutters, with wider desktop layo
 English typography uses locally hosted Manrope headings and Plus Jakarta Sans interface text. Bengali retains its existing typeface. Font licenses are included in public/fonts.
 
 For Vercel frontend deployments with a Render API, administrators must configure the public URL and trusted origins on both services. Follow [vercel-render-auth.md](vercel-render-auth.md), redeploy, and clear stale cookies before retrying sign-in.
+
+Developer troubleshooting: open the repository folder and select backend/Tranzora.slnx as the C# solution. After switching from VS Code's generated solution, use Developer: Reload Window once to refresh stale missing-type diagnostics. Do not delete application helpers or bypass authentication checks to clear editor diagnostics.

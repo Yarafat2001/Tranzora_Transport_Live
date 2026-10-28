@@ -31,3 +31,7 @@ The broader requested work packages are not all implemented. See render-deployme
 
 The owner requested a full release in Yarafat2001/Tranzora_Transport_Live. A clean initial snapshot is prepared from the tested application source, without importing the previous repository's history or its later local-storage implementation. The original checkout and remote are preserved. Latest typography checks: 10 browser checks passed; .NET build, TypeScript and 12 isolated API integration checks passed. Render remains pending account connection and paid-resource review.
 
+
+## Reported runtime and IDE issues � 29 October 2026
+
+Installed and verified libgssapi-krb5-2 in both Docker runtime stages. Restored dashboard and audit routes omitted during endpoint extraction. Cleared inherited HTTP/HTTPS port settings for the explicitly bound internal API. Pinned VS Code to backend/Tranzora.slnx and disabled the ignored temporary probe project created during verification. Actual API compilation includes Program.cs, WebSecurity.cs, EndpointExtensions.cs and SchemaMigrations.cs. Local .NET build and TypeScript passed; isolated PostgreSQL backend integration passed 12 checks and driver integration passed 1 check. The API runtime image contains libgssapi_krb5.so.2. Combined image verification and remote deployment are tracked separately; no public deployment success is implied by a local build.

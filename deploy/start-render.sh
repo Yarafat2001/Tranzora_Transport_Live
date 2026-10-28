@@ -27,7 +27,7 @@ cleanup() {
 }
 trap cleanup EXIT
 trap 'exit 143' TERM INT
-ASPNETCORE_URLS="http://127.0.0.1:$api_port" dotnet /app/api/Tranzora.Api.dll &
+ASPNETCORE_HTTP_PORTS="" ASPNETCORE_HTTPS_PORTS="" ASPNETCORE_URLS="http://127.0.0.1:$api_port" dotnet /app/api/Tranzora.Api.dll &
 api_pid=$!
 node /app/web/server.js &
 web_pid=$!

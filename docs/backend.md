@@ -169,3 +169,8 @@ Responsive UI adjustment (28 October 2026): shared search focus and landing/head
 English typography is supplied as local static font assets through app/typography.css; this changes no API contracts or authentication behavior.
 
 Vercel/Render origin, credentialed CORS and cookie configuration: see [vercel-render-auth.md](vercel-render-auth.md). One configured API origin list now drives CORS and CSRF checks; SameSite=None requires Secure cookies.
+
+Render runtime correction (29 October 2026): both Docker runtime stages install libgssapi-krb5-2 and verify that libgssapi_krb5.so.2 is registered. The combined-service script clears inherited HTTP_PORTS/HTTPS_PORTS when binding its API explicitly, preventing the harmless port-override warning. SDK compilation includes WebSecurity.cs, EndpointExtensions.cs and SchemaMigrations.cs; use backend/Tranzora.slnx in VS Code and reload the window if its cached generated solution still reports missing types.
+
+
+The endpoint-extraction regression also omitted dashboard and audit-log routes. Both routes are restored in EndpointExtensions with their existing tenant and permission checks; the existing API integration suite covers totals and audit behavior.
