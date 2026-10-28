@@ -61,10 +61,20 @@ var app = builder.Build();
 
 // Optional startup migration step. Only applies when RUN_MIGRATIONS=true;
 // API replicas never race to change the schema otherwise.
+// Migration errors are logged, not fatal: the schema may already exist
+// (e.g. applied by a previous deploy or a separate migration job).
 if (string.Equals(Environment.GetEnvironmentVariable("RUN_MIGRATIONS"), "true", StringComparison.OrdinalIgnoreCase))
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+    try
+    {
+        await using var scope = app.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Startup migration skipped or failed; continuing without applying migrations.");
+    }
 }
 if (args.Contains("--migrate"))
 {
