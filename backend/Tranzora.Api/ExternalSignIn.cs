@@ -32,12 +32,25 @@ public static class ExternalSignIn
             throw new InvalidOperationException("Mock identity endpoints are restricted to the Testing environment on loopback.");
         var protection = builder.Services.AddDataProtection().SetApplicationName("Tranzora.ExternalSignIn.v1").PersistKeysToDbContext<AppDbContext>();
         var certificatePath = config["Authentication:KeyEncryptionCertificatePath"];
-        if (!string.IsNullOrWhiteSpace(certificatePath)) protection.ProtectKeysWithCertificate(X509CertificateLoader.LoadPkcs12FromFile(certificatePath, config["Authentication:KeyEncryptionCertificatePassword"]));
-        else if (!origin.IsLoopback && Providers.Any(provider => Enabled(config, provider))) throw new InvalidOperationException("Configure Authentication:KeyEncryptionCertificatePath to encrypt the shared OAuth key ring before enabling public provider sign-in.");
+        var certificateBase64 = config["Authentication:KeyEncryptionCertificate"];
+        var certificatePassword = config["Authentication:KeyEncryptionCertificatePassword"];
+        if (!string.IsNullOrWhiteSpace(certificatePath)) protection.ProtectKeysWithCertificate(X509CertificateLoader.LoadPkcs12FromFile(certificatePath, certificatePassword));
+        // Base64 keeps the certificate intact in hosts that store secrets as text; a binary
+        // upload there loses bytes and arrives as "ASN1 corrupted data".
+        else if (!string.IsNullOrWhiteSpace(certificateBase64)) protection.ProtectKeysWithCertificate(LoadPkcs12FromBase64(certificateBase64, certificatePassword));
+        else if (!origin.IsLoopback && Providers.Any(provider => Enabled(config, provider))) throw new InvalidOperationException("Configure Authentication:KeyEncryptionCertificatePath or Authentication:KeyEncryptionCertificate to encrypt the shared OAuth key ring before enabling public provider sign-in.");
         builder.Services.AddScoped<IExternalAuthentication, Tranzora.Infrastructure.Authentication>();
         var authentication = builder.Services.AddAuthentication().AddCookie("External", options => { options.Cookie.Name = "tranzora_external_ticket"; options.ExpireTimeSpan = TimeSpan.FromMinutes(5); options.Cookie.HttpOnly = true; options.Cookie.SameSite = WebSecurity.SameSite(config); options.Cookie.SecurePolicy = CookieSecurePolicy.Always; });
         if (Enabled(config, "google")) authentication.AddGoogle("google", options => Configure(options, "google", config));
         if (Enabled(config, "microsoft")) authentication.AddMicrosoftAccount("microsoft", options => Configure(options, "microsoft", config));
+    }
+    private static X509Certificate2 LoadPkcs12FromBase64(string value, string? password)
+    {
+        try { return X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(value), password); }
+        catch (Exception ex) when (ex is FormatException or System.Security.Cryptography.CryptographicException)
+        {
+            throw new InvalidOperationException("Authentication:KeyEncryptionCertificate must hold the complete base64 of the PFX, with the matching KeyEncryptionCertificatePassword.", ex);
+        }
     }
     private static void Configure(OAuthOptions options, string provider, IConfiguration config)
     {
