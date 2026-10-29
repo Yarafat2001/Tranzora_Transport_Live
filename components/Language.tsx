@@ -33,15 +33,19 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
   const [menuLeft, setMenuLeft] = useState(-146);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const hoverOpened = useRef(false);
   useEffect(() => {
     if (!open) return;
-    root.current?.querySelector<HTMLButtonElement>('[role="menuitemradio"][aria-checked="true"]')?.focus();
+    // A hover-opened menu must not steal focus, or the keyboard user loses their place.
+    if (!hoverOpened.current) root.current?.querySelector<HTMLButtonElement>('[role="menuitemradio"][aria-checked="true"]')?.focus();
     const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
     document.addEventListener("pointerdown", outside);
     return () => document.removeEventListener("pointerdown", outside);
   }, [open]);
-  function choose(value: Language) { setLanguage(value); setOpen(false); trigger.current?.focus(); }
-  return <div className={styles.control} ref={root} onKeyDown={event => {
+  function choose(value: Language) { hoverOpened.current = false; setLanguage(value); setOpen(false); trigger.current?.focus(); }
+  // The menu is 190px wide and must stay on screen; the same clamp is needed for hover and tap opens.
+  function place() { const bounds = root.current!.getBoundingClientRect(); setMenuLeft(Math.max(8 - bounds.left, Math.min(bounds.width - 190, window.innerWidth - 198 - bounds.left))); }
+  return <div className={styles.control} ref={root} onPointerEnter={event => { if (event.pointerType === "mouse") { hoverOpened.current = true; place(); setOpen(true); } }} onPointerLeave={() => { if (!hoverOpened.current) return; hoverOpened.current = false; setOpen(false); }} onKeyDown={event => {
     if (event.key === "Escape") { setOpen(false); trigger.current?.focus(); }
     if (open && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
       event.preventDefault();
@@ -53,9 +57,12 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
     if (event.key === "Tab") setOpen(false);
   }}>
     <button ref={trigger} type="button" className={`${styles.trigger} ${className}`} aria-label="Change language" title={language === "bn" ? "Language: Bengali" : "Language: English"} aria-haspopup="menu" aria-expanded={open} onClick={() => {
-      const bounds = root.current!.getBoundingClientRect();
-      setMenuLeft(Math.max(8 - bounds.left, Math.min(bounds.width - 190, window.innerWidth - 198 - bounds.left)));
-      setOpen(value => !value);
+      place();
+      // Hover already opened it, so the first click must not toggle it shut; later clicks close as normal.
+      const fromHover = hoverOpened.current;
+      hoverOpened.current = false;
+      if (fromHover) setOpen(true);
+      else setOpen(value => !value);
     }}>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/></svg>
       <span className={styles.badge}>{language === "bn" ? "\u09acা" : "EN"}</span>
