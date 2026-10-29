@@ -61,7 +61,7 @@ export default function LanguageSwitcher({ className = "" }: { className?: strin
       <span className={styles.badge}>{language === "bn" ? "\u09acা" : "EN"}</span>
     </button>
     {open && <div className={styles.menu} style={{ left: menuLeft, right: "auto" }} role="menu" aria-label="Choose language">
-      <small>LANGUAGE / {"\u09ad\u09be\u09b7\u09be"}</small>
+      <small><span lang="en">LANGUAGE</span><span aria-hidden="true"> / </span><span lang="bn">{"\u09ad\u09be\u09b7\u09be"}</span></small>
       {(["en", "bn"] as const).map(value => <button key={value} type="button" role="menuitemradio" aria-checked={language === value} lang={value} onClick={() => choose(value)}>
         <span>{value === "en" ? "English" : "\u09ac\u09be\u0982\u09b2\u09be"}</span><span aria-hidden="true">{language === value ? "\u2713" : ""}</span>
       </button>)}
