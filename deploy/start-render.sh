@@ -31,6 +31,7 @@ trap cleanup EXIT
 trap 'exit 143' TERM INT
 ASPNETCORE_HTTP_PORTS="" ASPNETCORE_HTTPS_PORTS="" ASPNETCORE_URLS="http://127.0.0.1:$api_port" dotnet /app/api/Tranzora.Api.dll &
 api_pid=$!
+node /app/wait-for-api.mjs "$api_pid" "$api_port"
 node /app/web/server.js &
 web_pid=$!
 while kill -0 "$api_pid" 2>/dev/null && kill -0 "$web_pid" 2>/dev/null; do sleep 1; done

@@ -39,6 +39,7 @@ COPY --from=web-build --chown=app:app /src/.next/static /app/web/.next/static
 COPY --from=web-build --chown=app:app /src/public /app/web/public
 COPY --from=api-build --chown=app:app /out /app/api
 COPY --chown=app:app deploy/start-render.sh /app/start-render.sh
+COPY --chown=app:app deploy/wait-for-api.mjs /app/wait-for-api.mjs
 RUN chmod 755 /app/start-render.sh
 USER app
 EXPOSE 10000
