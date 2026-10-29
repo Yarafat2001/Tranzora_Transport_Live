@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Tranzora.Application;
 using Tranzora.Domain;
 
@@ -11,8 +12,8 @@ public sealed record DemoAccount(string Role, string Email);
 public sealed record DemoSeedResult(Guid OrganizationId, string OrganizationName, int CreatedUsers, int CreatedRecords,
     int PreservedRecords, IReadOnlyList<DemoAccount> Accounts, object Dashboard);
 
-/// <summary>Explicit development fixtures, created through the operational use cases in one transaction.</summary>
-public sealed class DemoSeeder(AppDbContext db, IOperations operations, IPasswordHasher<User> hasher, IHostEnvironment environment)
+/// <summary>Opt-in demo fixtures, created through operational use cases in one transaction.</summary>
+public sealed class DemoSeeder(AppDbContext db, IOperations operations, IPasswordHasher<User> hasher, IHostEnvironment environment, IConfiguration configuration)
 {
     public static readonly Guid OrganizationId = Guid.Parse("d368724b-c112-4b79-b865-a5b45cfb6982");
     public const string DefaultPassword = "TranzoraDemo2026!";
@@ -36,7 +37,7 @@ public sealed class DemoSeeder(AppDbContext db, IOperations operations, IPasswor
     {
         createdRecords = 0;
         preservedRecords = 0;
-        if (!environment.IsDevelopment()) throw new InvalidOperationException("Demo seeding is allowed only in Development. It never runs automatically at API startup.");
+        var password = SeedPassword(environment.IsDevelopment(), configuration);
         if ((await db.Database.GetPendingMigrationsAsync(ct)).Any()) throw new InvalidOperationException("Apply database migrations with --migrate before seeding.");
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         // Serialize two simultaneous seed commands, including the first organization insert.
@@ -67,13 +68,13 @@ public sealed class DemoSeeder(AppDbContext db, IOperations operations, IPasswor
                 Phone = $"+88017000000{index:00}",
                 Role = account.Role
             };
-            user.PasswordHash = hasher.HashPassword(user, DefaultPassword);
+            user.PasswordHash = hasher.HashPassword(user, password);
             db.Users.Add(user);
             createdUsers++;
         }
         await db.SaveChangesAsync(ct);
-        var owner = await db.Users.SingleAsync(x => x.Email == Accounts[0].Email, ct);
-        actor = new(owner.Id, OrganizationId, "Super Admin");
+        var owner = await db.Users.SingleAsync(x => x.Email == "admin@demo.tranzora.test", ct);
+        actor = new(owner.Id, OrganizationId, "Business Admin");
         var now = DateTimeOffset.UtcNow;
         var today = DateOnly.FromDateTime(now.UtcDateTime);
         var customers = new List<Customer>();
@@ -263,6 +264,21 @@ public sealed class DemoSeeder(AppDbContext db, IOperations operations, IPasswor
         var dashboard = await operations.Dashboard(actor, ct);
         await transaction.CommitAsync(ct);
         return new(OrganizationId, organization.Name, createdUsers, createdRecords, preservedRecords, Accounts, dashboard);
+    }
+
+    public static string SeedPassword(bool development, IConfiguration configuration)
+    {
+        var password = configuration["DemoSeed:Password"];
+        if (!development)
+        {
+            if (!configuration.GetValue<bool>("DemoSeed:AllowProduction"))
+                throw new InvalidOperationException("Production demo seeding requires DemoSeed:AllowProduction=true and a private DemoSeed:Password.");
+            if (string.IsNullOrWhiteSpace(password) || password == DefaultPassword || password.Length < 16)
+                throw new InvalidOperationException("Production demo seeding requires a private DemoSeed:Password of at least 16 characters; the published development password is forbidden.");
+        }
+        password ??= DefaultPassword;
+        Authentication.ValidatePassword(password);
+        return password;
     }
 
     private async Task<T> Ensure<T>(string resource, string reference, object values, CancellationToken ct) where T : Record

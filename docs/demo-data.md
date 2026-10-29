@@ -10,7 +10,7 @@ dotnet run --project backend/Tranzora.Api -- --environment Development --migrate
 npm run seed:demo
 ```
 
-Start the API and frontend following README.md, then open http://localhost:3000/login. Seeding is opt-in, refuses to run outside Development, and never clears the database or runs automatically at startup.
+Start the API and frontend following README.md, then open http://localhost:3000/login. Seeding is opt-in and never clears the database. Public seeding requires the explicit production settings below.
 
 For an already built full local Compose stack:
 
@@ -22,11 +22,11 @@ Use the same environment file/database credentials as the running stack. This on
 
 ## Sign-in credentials
 
-All newly created demo accounts use password **`TranzoraDemo2026!`**.
+Local Development accounts use the documented development fixture password. Public deployments require a private configured password and reject the development default.
 
 | Role | Email | Main workflow |
 | --- | --- | --- |
-| Super Admin | superadmin@demo.tranzora.test | Full workspace and user management |
+| Super Admin | superadmin@demo.tranzora.test | Reserved platform-operator demonstration account; keep private |
 | Business Admin | admin@demo.tranzora.test | Workspace administration |
 | Manager | manager@demo.tranzora.test | Operations and reports; no user/workspace administration |
 | Accountant | accountant@demo.tranzora.test | Customers, suppliers, invoices, payments, expenses and income |
@@ -76,3 +76,22 @@ npm run test:demo
 ```
 
 This test expects the original demo credentials, counts and financial fixtures. Trip progress may change: dashboard trip counters are checked against the current stored trip statuses. Normal integration tests create separate workspaces and do not require a demo seed.
+
+## Public Render demonstration workspace
+
+This creates a separate demo workspace, not records inside your existing business workspace. The Business Admin is its owner; the Super Admin fixture is reserved for the platform operator. Never distribute operator credentials to customers.
+
+In the combined Render service, set these private environment settings:
+
+- `DemoSeed__AllowProduction=true`
+- `DemoSeed__Password`: choose a unique private password of 16?128 characters with letters, numbers and a symbol; do not use the published development password.
+- `SEED_DEMO_ON_DEPLOY=true`
+- `RUN_MIGRATIONS=true`
+
+Deploy the commit containing this feature. The startup command applies migrations, seeds in a single transaction and then starts the API and frontend. No secrets are printed. Check the seed result for created/preserved counts. After the successful deployment, remove `SEED_DEMO_ON_DEPLOY`, `DemoSeed__AllowProduction`, and `DemoSeed__Password` and redeploy. Do not change ASPNETCORE_ENVIRONMENT to Development on the public site.
+
+All eight listed email accounts are created with the configured password only if missing. Existing account passwords, roles and status are preserved; changing the seed password does not reset them. Use each account's password-change screen to assign distinct passwords before sharing access. Mail to `.test` fixture addresses cannot be delivered; these accounts use password sign-in, not Google OAuth.
+
+The seeded workspace is visible only to its members. Sign in using `admin@demo.tranzora.test` to inspect it. Your existing Google account stays in its original workspace. No anonymous seed endpoint is exposed. Keep the database and Data Protection certificate settings unchanged.
+
+For an isolated production-seed verification, the integration test accepts `DEMO_TEST_PASSWORD` and `TEST_API_URL` from its process environment. Do not run the mutable fixture tests against a shared public demo workspace.

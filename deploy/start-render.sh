@@ -18,6 +18,8 @@ export App__SecureCookies="${App__SecureCookies:-true}"
 migrate="${RUN_MIGRATIONS:-true}"
 unset RUN_MIGRATIONS
 if [ "$migrate" = true ]; then dotnet /app/api/Tranzora.Api.dll --migrate; fi
+# Explicit opt-in only; DemoSeeder also validates production consent and password.
+if [ "${SEED_DEMO_ON_DEPLOY:-false}" = true ]; then dotnet /app/api/Tranzora.Api.dll --seed-demo; fi
 api_pid=''
 web_pid=''
 cleanup() {

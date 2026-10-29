@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { randomUUID } from "node:crypto";
 
 const base = process.env.TEST_API_URL ?? "http://localhost:5080";
-const password = "TranzoraDemo2026!";
+const password = process.env.DEMO_TEST_PASSWORD ?? "TranzoraDemo2026!";
 const accounts = [
   ["Super Admin", "superadmin"],
   ["Business Admin", "admin"],

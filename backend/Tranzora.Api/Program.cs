@@ -194,7 +194,7 @@ static async Task<bool> RunCommandAsync(string[] args, IServiceProvider services
         await using var scope = services.CreateAsyncScope();
         var result = await scope.ServiceProvider.GetRequiredService<DemoSeeder>().Seed();
         Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true }));
-        Console.WriteLine("New demo accounts use the password documented in docs/demo-data.md. Existing account passwords and edited records are preserved.");
+        Console.WriteLine("New demo accounts use the configured private DemoSeed password, or the development-only documented default. Existing account passwords and edited records are preserved.");
         return true;
     }
     return false;
